@@ -8,17 +8,24 @@ class AntonymService
   end
 
   def find_antonyms
-    response = openai_client.completions(prompt: synonym_string, max_tokens: 256)
-    response.choices.pluck('text')
+    response = openai_client.chat(
+      parameters: {
+          model: "gpt-4o",
+          messages: [{ role: 'user', content: antonym_string}],
+      })
+    response['choices'].first['message']['content']
   end
 
   private
 
-  def synonym_string
-    "Give me several antonyms for the word '#{term}' in a numbered list."
+  def antonym_string
+    "Give me several antonyms for the word '#{term}' in a numbered list. Do not include anything except the list of synonyms in your response message."
   end
 
   def openai_client
-    OpenAI::Client.new(api_key: ENV.fetch('OPENAI_API_KEY'), default_engine: 'text-davinci-003')
+    OpenAI::Client.new(
+      access_token: ENV.fetch('OPENAI_API_KEY'),
+      log_errors: true
+    )
   end
 end
